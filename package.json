@@ -1,0 +1,37 @@
+{
+  "name": "scholarapi",
+  "version": "1.0.0",
+  "description": "CLI for the Semantic Scholar API",
+  "type": "module",
+  "main": "src/index.ts",
+  "bin": {
+    "scholar": "src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check src/**/*.ts"
+  },
+  "keywords": [
+    "semantic-scholar",
+    "api",
+    "cli",
+    "research",
+    "papers"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^22.5.0",
+    "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
