@@ -4,6 +4,13 @@ export const DEFAULT_PAPER_FIELDS = 'title,url,publicationDate,citationCount,aut
 export const DEFAULT_AUTHOR_FIELDS = 'name,url,paperCount,hIndex'
 export const DEFAULT_RECOMMEND_FIELDS = 'title,url,citationCount,authors'
 
+export interface AgentMeta {
+  endpoint: string
+  authenticated: boolean
+  fields: string
+  [key: string]: unknown
+}
+
 export function formatPaperTableRow(paper: Paper): Record<string, string> {
   return {
     Title: paper.title?.slice(0, 80) ?? 'N/A',
@@ -18,6 +25,16 @@ export function truncate(str: string, len: number): string {
 }
 
 export function escapeJsonString(str: string, maxLineLength: number = 120): string {
-  const escaped = str.replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim()
+  const escaped = str.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
   return truncate(escaped, maxLineLength)
+}
+
+export function formatAgentOutput(meta: AgentMeta, summary: string, data: unknown): void {
+  const output = {
+    format: 'agent' as const,
+    meta,
+    summary,
+    data
+  }
+  console.log(JSON.stringify(output, null, 2))
 }

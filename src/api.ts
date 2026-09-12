@@ -17,6 +17,7 @@ const DATASETS_BASE_URL = 'https://api.semanticscholar.org/datasets/v1'
 export interface S2ApiConfig {
   apiKey?: string
   baseUrl?: string
+  rateLimitMs?: number
 }
 
 export class ScholarAPIError extends Error {
@@ -34,10 +35,13 @@ export class ScholarAPIError extends Error {
 export class ScholarAPI {
   private apiKey?: string
   private baseUrl: string
+  private rateLimitMs: number
+  private lastRequestTime: number = 0
 
   constructor(config: S2ApiConfig = {}) {
     this.apiKey = config.apiKey ?? process.env.S2_API_KEY
     this.baseUrl = config.baseUrl ?? GRAPH_BASE_URL
+    this.rateLimitMs = config.rateLimitMs ?? 1000
   }
 
   getApiKey(): string | undefined {
@@ -48,6 +52,17 @@ export class ScholarAPI {
     this.apiKey = key
   }
 
+  private async enforceRateLimit(): Promise<void> {
+    const now = Date.now()
+    const elapsed = now - this.lastRequestTime
+    if (elapsed < this.rateLimitMs) {
+      const delay = this.rateLimitMs - elapsed
+      console.error(`Rate limiting: waiting ${delay}ms before next request...`)
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+    this.lastRequestTime = Date.now()
+  }
+
   private async request<T>(
     method: 'GET' | 'POST',
     path: string,
@@ -55,6 +70,8 @@ export class ScholarAPI {
     body?: unknown,
     baseUrl?: string
   ): Promise<T> {
+    await this.enforceRateLimit()
+
     const url = new URL(`${baseUrl ?? this.baseUrl}${path}`)
 
     if (params) {

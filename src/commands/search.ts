@@ -1,7 +1,7 @@
 import type { SearchOptions, SearchPaperResponse } from '../types'
 import { ScholarAPI } from '../api'
 import { handleApiError } from '../utils'
-import { DEFAULT_PAPER_FIELDS, formatPaperTableRow } from '../formatter'
+import { DEFAULT_PAPER_FIELDS, formatPaperTableRow, formatAgentOutput } from '../formatter'
 
 export async function searchPapers(options: SearchOptions): Promise<void> {
   const api = new ScholarAPI({ apiKey: options.apiKey })
@@ -37,7 +37,17 @@ export async function searchPapers(options: SearchOptions): Promise<void> {
       response.data = response.data.slice(0, options.limit)
     }
 
-    outputResults(response, options.output ?? 'json', options.limit)
+    outputResults(response, options.output ?? 'json', options.limit, api, {
+      query: options.query,
+      fields,
+      year: options.year,
+      minCitationCount: options.minCitationCount,
+      venue: options.venue,
+      fieldsOfStudy: options.fieldsOfStudy,
+      openAccessPdf: options.openAccessPdf,
+      publicationTypes: options.publicationTypes,
+      all: options.all
+    })
   } catch (error) {
     handleApiError(error)
   }
@@ -86,8 +96,55 @@ async function fetchAllPapers(
   return { total, data: allData }
 }
 
-function outputResults(response: SearchPaperResponse, format: string, limit?: number): void {
+function outputResults(
+  response: SearchPaperResponse,
+  format: string,
+  limit?: number,
+  api?: ScholarAPI,
+  searchMeta?: Record<string, unknown>
+): void {
   const data = response.data ?? []
+
+  if (format === 'text') {
+    console.log(`Found ${response.total} papers matching '${searchMeta?.query ?? ''}'.`)
+    if (limit !== undefined) console.log(`Showing ${data.length} of ${response.total} results:`)
+    if (data.length === 0) {
+      console.log('No papers found.')
+      return
+    }
+    console.log()
+    data.forEach((paper: any, i: number) => {
+      console.log(`${i + 1}. ${paper.title ?? 'N/A'} (ID: ${paper.paperId ?? 'N/A'})`)
+      if (paper.authors && paper.authors.length > 0) {
+        const authorNames = paper.authors.map((a: any) => a.name ?? a).join(', ')
+        console.log(`   Authors: ${authorNames}`)
+      }
+      const parts: string[] = []
+      if (paper.year) parts.push(`Year: ${paper.year}`)
+      if (paper.citationCount !== undefined) parts.push(`Citations: ${paper.citationCount}`)
+      if (paper.publicationDate) parts.push(`Published: ${paper.publicationDate}`)
+      if (parts.length > 0) console.log(`   ${parts.join(' | ')}`)
+      if (paper.url) console.log(`   URL: ${paper.url}`)
+      console.log()
+    })
+    return
+  }
+
+  if (format === 'agent') {
+    const authenticated = !!api?.getApiKey()
+    const summary = `Found ${response.total} papers matching '${searchMeta?.query ?? ''}'. Showing ${data.length} of ${response.total} results.`
+    formatAgentOutput(
+      {
+        endpoint: 'paper/search/bulk',
+        authenticated,
+        fields: (searchMeta?.fields as string) ?? '',
+        ...(searchMeta as Record<string, unknown>)
+      },
+      summary,
+      data
+    )
+    return
+  }
 
   if (format === 'table') {
     console.log(`Total results: ${response.total}`)

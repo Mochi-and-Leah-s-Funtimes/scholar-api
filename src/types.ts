@@ -130,7 +130,7 @@ export interface DatasetDownloadInfo {
   files: DatasetFile[]
 }
 
-export type OutputFormat = 'json' | 'table' | 'raw'
+export type OutputFormat = 'json' | 'table' | 'raw' | 'agent' | 'text'
 
 export interface SearchOptions {
   query: string

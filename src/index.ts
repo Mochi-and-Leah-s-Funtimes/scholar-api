@@ -29,9 +29,9 @@ program
   .option('--min-citation-count <n>', 'minimum citation count')
   .option('--venue <venue>', 'filter by publication venue')
   .option('--fields-of-study <fields>', 'filter by field of study')
-  .option('--limit <n>', 'limit number of results (default: 100)')
+  .option('--limit <n>', 'limit number of results (client-side)')
   .option('--all', 'fetch all results by following pagination tokens')
-  .option('--output <format>', 'output format: json | table | raw', 'json')
+  .option('--output <format>', 'output format: text | json | table | raw | agent', 'text')
   .action((query: string, opts: OptionValues) => {
     searchPapers({
       query,
@@ -55,7 +55,7 @@ program
   .description('Get details about a specific paper by ID')
   .argument('<paperId>', 'paper ID (or DOI)')
   .option('--fields <fields>', 'comma-separated fields to return')
-  .option('--output <format>', 'output format: json | table | raw', 'json')
+  .option('--output <format>', 'output format: text (default) | json | table | raw | agent', 'text')
   .action((paperId: string, opts: OptionValues) => {
     getPaperDetails({
       paperId,
@@ -72,7 +72,7 @@ program
   .option('--negative <ids...>', 'negative seed paper IDs')
   .option('--fields <fields>', 'comma-separated fields to return')
   .option('--limit <n>', 'limit number of recommendations (max: 500)')
-  .option('--output <format>', 'output format: json | table | raw', 'json')
+  .option('--output <format>', 'output format: text (default) | json | table | raw | agent', 'text')
   .action((paperIds: string[], opts: OptionValues) => {
     getRecommendations({
       positivePaperIds: paperIds,
@@ -89,7 +89,7 @@ program
   .description('Look up authors by ID')
   .argument('<authorIds...>', 'author IDs')
   .option('--fields <fields>', 'comma-separated fields to return', 'name,url,paperCount,hIndex')
-  .option('--output <format>', 'output format: json | table | raw', 'json')
+  .option('--output <format>', 'output format: text (default) | json | table | raw | agent', 'text')
   .action((authorIds: string[], opts: OptionValues) => {
     lookupAuthors({
       authorIds,
